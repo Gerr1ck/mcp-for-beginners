@@ -10,6 +10,8 @@ This client demonstrates how to:
 
 import asyncio
 import json
+import os
+import sys
 from mcp import ClientSession, StdioServerParameters, types
 from mcp.client.stdio import stdio_client
 
@@ -17,9 +19,15 @@ from mcp.client.stdio import stdio_client
 class MCPCalculatorClient:
     def __init__(self):
         # Create server parameters for stdio connection
+        # Ensure we run the server with the same Python interpreter / venv
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        server_script = os.path.abspath(
+            os.path.join(base_dir, "01-first-server", "solution", "python", "server.py")
+        )
+
         self.server_params = StdioServerParameters(
-            command="python",  # Executable
-            args=["../01-first-server/solution/python/server.py"],  # Server script
+            command=sys.executable,  # Use the same python interpreter that's running this client
+            args=[server_script],  # Absolute path to server script
             env=None,  # Optional environment variables
         )
 
@@ -48,7 +56,11 @@ class MCPCalculatorClient:
                     print("\n✨ Client operations completed successfully!")
 
         except Exception as e:
+            # Print full exception info to help debug issues like server process exits
+            import traceback
+
             print(f"❌ Error running MCP client: {e}")
+            traceback.print_exc()
             raise
 
     async def list_tools(self, session: ClientSession):
